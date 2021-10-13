@@ -1,0 +1,27 @@
+#!/bin/bash
+
+dir=`pwd`
+
+verde="\033[1;32m"
+vermelho="\033[1;31m"
+limpar="\033[0m"
+
+
+# =================================================================================
+#						Flags
+# =================================================================================
+FINALIZOU=FALSE
+# =================================================================================
+
+if [ -f *.out ]; then
+    arquivo_out=`ls *.out`;
+else
+    echo "Erro: Nenhum arquivo .out encontrado."
+    exit 1
+fi
+
+
+if tail $arquivo_out | grep -q 'End of run'; then
+    FINALIZOU=TRUE
+fi
+
