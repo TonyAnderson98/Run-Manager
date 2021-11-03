@@ -10,9 +10,88 @@ limpar="\033[0m"
 # =================================================================================
 #						Flags
 # =================================================================================
-FINALIZOU=FALSE
+# Execução
+FINALIZOU=FALSE         # Registra se o cálculo atual finalizou
+QUIET=FALSE
+VERBOSE=0
+KEEP_TEMP=0
+# Dependências
+DEP_GFORTRAN=FALSE
+DEP_XCRYSDEN=FALSE
+DEP_XMAKEMOL=FALSE
+DEP_XMGRACE=FALSE
+DEP_ZENITY=FALSE
 # =================================================================================
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Verificação de argumentos passados na excecução do programa
+while test -n "$1"
+do
+    case "$1" in
+        -h | --help)
+            echo -e "$MENSAGEM_AJUDA"
+            exit 0
+            ;;
+        -v | --version)
+            echo "$VERSAO"
+            exit 0
+            ;;
+        -V | --verbose)
+            VERBOSE=TRUE
+            ;;
+        -q | --quiet)
+            QUIET=TRUE
+            ;;
+        -k | --keep-temp)
+            KEEP_TEMP=TRUE
+            ;;
+        *)
+            if test -n "$1"; then
+                echo "$OPCAO_INVALIDA"
+                exit 1
+            fi
+    esac
+    # Opção $1 já tratada, deslocando parâmetros posicionais
+    shift
+done
+# =================================================================================
+
+
+
+
+# =================================================================================
+#						Função Verbose
+# =================================================================================
+#	Objetivo:			 -	Exibir logs detalhados no terminal se a flag verbose = True
+#	Variavel
+#		$1               -	Mensagem passada na chamada da função
+#
+log_verbose(){
+    test $VERBOSE = TRUE && printf "$1"
+}
+# =================================================================================
+
+
+
+
+
+
+
+
+
+# Verificando se há algum arquivo .out na pasta
 if [ -f *.out ]; then
     arquivo_out=`ls *.out`;
 else
@@ -21,7 +100,33 @@ else
 fi
 
 
-if tail $arquivo_out | grep -q 'End of run'; then
+if tail $arquivo_out | grep -q -i 'End of run Job Completed' ; then
     FINALIZOU=TRUE
 fi
 
+
+# Se o cálculo está completo, faça o backup de todos os arquivos da pasta
+if [ $FINALIZOU = TRUE ]; then
+    log_verbose "Cálculo finalizado, fazendo Backups.\n"
+
+    data=$(date +%y-%m-%d_%H:%M) # Data e hora para o nome do backup
+    zip -q -9 ${data}.zip * 
+
+    log_verbose "Backup finalizado.\n"
+fi
+
+
+
+
+
+
+
+
+
+# if [ $FINALIZOU = TRUE ]; then
+#     echo -e "$verde Backup dos arquivos da pasta $dir $limpar"
+#     cp -r $dir/* $dir/../backup/
+#     echo -e "$verde Backup realizado com sucesso $limpar"
+# else
+#     echo -e "$vermelho O cálculo atual não finalizou. Não é possível fazer o backup $limpar"
+# fi
