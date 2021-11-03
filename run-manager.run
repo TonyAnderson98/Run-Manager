@@ -4,6 +4,7 @@ dir=`pwd`
 
 verde="\033[1;32m"
 vermelho="\033[1;31m"
+amarelo="\033[1;33m"
 limpar="\033[0m"
 
 
@@ -23,7 +24,8 @@ DEP_XMGRACE=FALSE
 DEP_ZENITY=FALSE
 # =================================================================================
 
-
+# Tornando as dependẽncias do script executável
+chmod +x new_run.run
 
 
 
@@ -107,12 +109,18 @@ fi
 
 # Se o cálculo está completo, faça o backup de todos os arquivos da pasta
 if [ $FINALIZOU = TRUE ]; then
-    log_verbose "Cálculo finalizado, fazendo Backups.\n"
-
     data=$(date +%y-%m-%d_%H:%M) # Data e hora para o nome do backup
-    zip -q -9 ${data}.zip * 
+    zip -q -9 ${data}.zip *      # Cria o zip 
 
-    log_verbose "Backup finalizado.\n"
+    printf "$verde [ OK ]$limpar Cálculo finalizado, backup $amarelo[$data.zip]$limpar criado.\n"
+else
+    printf "$vermelho [ERRO]$limpar Cálculo não finalizado\n"
+fi
+
+
+# Exibindo o 'constrained'
+if [ $FINALIZOU=FALSE ]; then
+    grep "constrained" *.out 
 fi
 
 
@@ -120,13 +128,22 @@ fi
 
 
 
+# Criar estrutura de bandas
+./gnubands < $prefixo.bands > bandas.dat
 
 
 
-# if [ $FINALIZOU = TRUE ]; then
-#     echo -e "$verde Backup dos arquivos da pasta $dir $limpar"
-#     cp -r $dir/* $dir/../backup/
-#     echo -e "$verde Backup realizado com sucesso $limpar"
-# else
-#     echo -e "$vermelho O cálculo atual não finalizou. Não é possível fazer o backup $limpar"
-# fi
+
+
+
+
+
+
+
+# Iniciando novos cálculos se necessário
+if [ $FINALIZOU=TRUE ]; then
+    printf "$verde Iniciando novos cálculos $limpar \n"
+    ./new_run.run
+fi
+
+
