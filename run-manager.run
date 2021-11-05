@@ -83,23 +83,23 @@ done
 #						Parse XML
 # =================================================================================
 #	Objetivo:			 -	Tratar o arquivo XML
-#	Variavel
 #
 SystemName=($(grep -oP '(?<=SystemName>)[^<]+' $dir/settings.xml))
 SystemLabel=($(grep -oP '(?<=SystemLabel>)[^<]+' $dir/settings.xml))
 # =================================================================================
 
-log_verbose "SystemName: $SystemName"
-log_verbose "SystemLabel: $SystemLabel"
 
-# Verificar integridade do arquivo XML
-if [ -z "$SystemName" -o -z "$SystemLabel" ]; then
-    echo -e "${vermelho}[ERRO]${limpar} O arquivo 'setting.xml está ausente ou imcompleto'."
+
+
+
+
+# Vericar se o arquivo de configuração existe
+if [ ! -f "$dir/settings.xml" ]; then
+    echo -e "${vermelho}[ERRO]${limpar} O arquivo de configurações '${amarelo}settings.xml${limpar}' não existe."
     exit 1
+else
+    log_verbose "${verde}[ OK ]${limpar} Arquivo de configurações '${amarelo}settings.xml${limpar}' encontrado"
 fi
-
-
-
 
 
 
@@ -132,7 +132,7 @@ fi
 
 
 # =================================================================================
-#						Backup
+#						-----
 # =================================================================================
 #	Objetivo:			 -	Realizar backup de todos os arquivos de saída
 #
@@ -140,40 +140,21 @@ if [ $FINALIZOU = TRUE ]; then
     data=$(date +%y-%m-%d_%H:%M) # Data e hora para o nome do backup
     zip -q -9 ${data}.zip *      # Cria o zip 
 
-    printf "$verde [ OK ]$limpar Cálculo finalizado, backup $amarelo[$data.zip]$limpar criado.\n"
-else
-    printf "$vermelho [ERRO]$limpar Cálculo não finalizado\n"
-fi
+    printf "$verde[ OK ]$limpar Cálculo finalizado, backup $amarelo[$data.zip]$limpar criado.\n"
 
 
-# Listar o Constrained da Matriz de Densidade Eletrônica
-if [ $FINALIZOU=FALSE ]; then
+    # Mostrar o Constrained da Matriz de Densidade Eletrônica
     grep "constrained" *.out 
-fi
 
 
+    # Gerar os arquivos de bandas no formato GNU
+    ./gnubands < $SystemLabel.BANDS > bandas.dat
 
 
-# =================================================================================
-#						BANDS
-# =================================================================================
-#	Objetivo:			 -	Gerar os arquivos de bandas no formato GNU
-#
-./gnubands < $prefixo.bands > bandas.dat
-
-
-
-
-
-
-
-
-
-
-# Iniciando novos cálculos se necessário
-if [ $FINALIZOU=TRUE ]; then
+    # Iniciando novos cálculos se necessário
     printf "$verde Iniciando novos cálculos $limpar \n"
     ./new_run.run
+else
+    printf "$vermelho[ERRO]$limpar Cálculo não finalizado\n"
 fi
-
-
+# =================================================================================
