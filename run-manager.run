@@ -77,6 +77,52 @@ done
 
 
 
+# =================================================================================
+#						Bandas Fermi 
+# =================================================================================
+#	Objetivo:			 -	Gera a estrutura de banda para o Nível de Fermi
+#	Variavel
+#
+bandas_fermi(){
+    
+    # Pegar a Energia de Fermi
+    E_FERMI=$(head -n 1 ${SystemLabel}.bands)
+
+    # Pegar o Vetor de Alta Simetria X
+    X=$(tail -n 1 ${SystemLabel}.bands | awk '{print $1}')
+    
+    # Pegar o Vetor de Alta Simetria Gamma
+    GAMMA=$(tail -n 2 ${SystemLabel}.bands | head -n 1 | awk '{print $1}')  
+    
+    echo 
+    echo "---------------------------------------"
+    echo "               X:    $X"
+    echo "           GAMMA:    $GAMMA"
+    echo "Energia de Fermi: $E_FERMI"
+    echo "---------------------------------------"
+
+    # Criando o arquivo bandas-fermi.dat
+    echo "$GAMMA        $E_FERMI" > bandas-fermi.dat
+    echo "$X        $E_FERMI" >> bandas-fermi.dat
+    
+}
+# =================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # =================================================================================
@@ -125,10 +171,11 @@ fi
 # =================================================================================
 #	Objetivo:			 -	Verifica se o cálculo atual já foi finalizado
 #
-if tail $arquivo_out | grep -q -i 'End of run Job Completed' ; then
+if tail $arquivo_out | grep -q -i 'Completed End' ; then
     FINALIZOU=TRUE
 fi
 # =================================================================================
+
 
 
 # =================================================================================
@@ -136,11 +183,15 @@ fi
 # =================================================================================
 #	Objetivo:			 -	Realizar backup de todos os arquivos de saída
 #
-if [ $FINALIZOU = TRUE ]; then
-    data=$(date +%y-%m-%d_%H:%M) # Data e hora para o nome do backup
-    zip -q -9 ${data}.zip *      # Cria o zip 
 
-    printf "$verde[ OK ]$limpar Cálculo finalizado, backup $amarelo[$data.zip]$limpar criado.\n"
+
+if [ $FINALIZOU = TRUE ]; then
+    printf "\n==========$verde Cálculo finalizado$limpar ==========\n\n"
+
+    data=$(date +%y-%m-%d_%H:%M) # Data e hora para o nome do backup
+    # zip -q -9 ${data}.zip *      # Cria o zip 
+
+    printf "$verde[ OK ]$limpar Backup $amarelo[$data.zip]$limpar criado.\n"
 
 
     # Mostrar o Constrained da Matriz de Densidade Eletrônica
@@ -148,12 +199,16 @@ if [ $FINALIZOU = TRUE ]; then
 
 
     # Gerar os arquivos de bandas no formato GNU
-    ./gnubands < $SystemLabel.BANDS > bandas.dat
+    # ./gnubands < $SystemLabel.BANDS > bandas.dat
+
+    # TODO: Gerar banda-fermi.dat
+
+    bandas_fermi
 
 
     # Iniciando novos cálculos se necessário
-    printf "$verde Iniciando novos cálculos $limpar \n"
-    ./new_run.run
+    # printf "$verde Iniciando novos cálculos $limpar \n"
+    # ./new_run.run
 else
     printf "$vermelho[ERRO]$limpar Cálculo não finalizado\n"
 fi
