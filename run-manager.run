@@ -207,7 +207,7 @@ if [ $FINALIZOU = TRUE ]; then
 
 
     # Iniciando novos cálculos se necessário
-    # printf "$verde Iniciando novos cálculos $limpar \n"
+    printf "$verde Iniciando novos cálculos $limpar \n"
     # ./new_run.run
 else
     printf "$vermelho[ERRO]$limpar Cálculo não finalizado\n"
