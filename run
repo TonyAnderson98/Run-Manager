@@ -1,0 +1,11 @@
+#!/bin/sh
+#$ -cwd
+#$ -v  LD_LIBRARY_PATH=/opt/intel/fc/10.0.023/lib:$LD_LIBRARY_PATH
+#$  -e job.erro-v
+#$  -o job.out-v
+#$ -N jtBNPuro
+
+source /usr/local/bin/.openmip/bin
+
+mpirun -np 6 ./siesta-tony <tBN80-tricloro-7.fdf> tBN80-tricloro-7.out
+
