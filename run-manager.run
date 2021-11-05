@@ -78,6 +78,20 @@ done
 
 
 # =================================================================================
+#						Parse XML
+# =================================================================================
+#	Objetivo:			 -	Tratar o arquivo XML
+#
+SystemName=($(grep -oP '(?<=SystemName>)[^<]+' $dir/settings.xml))
+SystemLabel=($(grep -oP '(?<=SystemLabel>)[^<]+' $dir/settings.xml))
+
+Nome=($(grep -oP '(?<=Nome>)[^<]+' $dir/settings.xml))
+Email=($(grep -oP '(?<=Email>)[^<]+' $dir/settings.xml))
+# =================================================================================
+
+
+
+# =================================================================================
 #						Bandas Fermi 
 # =================================================================================
 #	Objetivo:			 -	Gera a estrutura de banda para o Nível de Fermi
@@ -109,33 +123,75 @@ bandas_fermi(){
 # =================================================================================
 
 
+enviar_email(){  
+# Escrever o corpo do email
+cat << EOF > email.html
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RunManager</title>
+</head>
+
+<body>
+    <style>
+        p {
+            font-size: 14px;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.42857143;
+            color: black;
+        }
+
+        .anexos {
+            font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+            font-size: 13px;
+            line-height: 1.42857143;
+            color: black;
+            white-space: nowrap;
+        }
+    </style>
+
+    <h1>Cálculo Finalizado</h1>
+    <p>Olá, ${Nome}, seu cálculo <b>
+            <font color="green">${SystemLabel}</font>
+        </b> foi finalizado.</p>
+    <p>Aqui estão alguns dados:</p>
+
+    <code>
+        -------------------------------       <br>
+        Energia de Fermi: ${E_FERMI}          <br>
+        -------------------------------       <br>
+    </code>
+
+    <p>Os seguintes arquivos foram anexados a este email:</p>
+    <div class="anexos">
+        <ul>
+            <li><code>${arquivo_out}</code></li>
+            <li><code>${bandas-fermi}.dat</code></li>
+            <li><code>${SystemLabel}.bands</licode></li>
+        </ul>
+    </div>
+</body>
+
+</html>
+EOF
+
+# Enviando o email
+mutt -e "set content_type=text/html" -s "Siesta - LSIM" -a $SystemLabel.out $SystemLabel.bands bandas.dat bandas-fermi.dat -- anderson.tony@discente.ufma.br  < email.html
+
+}
 
 
+msg_ok(){
+    echo -e "$verde [ OK ] $1"
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# =================================================================================
-#						Parse XML
-# =================================================================================
-#	Objetivo:			 -	Tratar o arquivo XML
-#
-SystemName=($(grep -oP '(?<=SystemName>)[^<]+' $dir/settings.xml))
-SystemLabel=($(grep -oP '(?<=SystemLabel>)[^<]+' $dir/settings.xml))
-# =================================================================================
-
-
-
+msg_erro(){
+    echo -e "$vermelho [ERRO] $1"
+}
 
 
 
@@ -184,7 +240,7 @@ if [ $FINALIZOU = TRUE ]; then
     data=$(date +%y-%m-%d_%H:%M) # Data e hora para o nome do backup
     # zip -q -9 ${data}.zip *      # Cria o zip 
 
-    printf "$verde[ OK ]$limpar Backup $amarelo[$data.zip]$limpar criado.\n"
+    msg_ok "Backup $amarelo[$data.zip]$limpar criado. "
 
 
     # Mostrar o Constrained da Matriz de Densidade Eletrônica
@@ -192,17 +248,20 @@ if [ $FINALIZOU = TRUE ]; then
 
 
     # Gerar os arquivos de bandas no formato GNU
-    # ./gnubands < $SystemLabel.BANDS > bandas.dat
+    ./gnubands < $SystemLabel.bands > bandas.dat
 
     # TODO: Gerar banda-fermi.dat
-
     bandas_fermi
+
+    # Enviar email ao usuário informando que o cálculo foi finalizado
+    enviar_email
+
 
 
     # Iniciando novos cálculos se necessário
     printf "$verde Iniciando novos cálculos $limpar \n"
     # ./new_run.run
 else
-    printf "$vermelho[ERRO]$limpar Cálculo não finalizado\n"
+    msg_erro "Cálculo não finalizado."
 fi
 # =================================================================================

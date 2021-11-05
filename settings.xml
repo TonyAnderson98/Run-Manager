@@ -9,6 +9,11 @@
     </Diretorios>
     <Backups>
         <MaximoBackups>5</MaximoBackups>
+        <FatorCompressao>9</FatorCompressao>
     </Backups>
+    <Usuario>
+        <Nome>Tony Anderson</Nome>
+        <Email>anderson.tony.98@gmail.com<Email/>
+    </Usuario>
 </RunManager>
 
