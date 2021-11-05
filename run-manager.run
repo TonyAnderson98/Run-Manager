@@ -151,13 +151,6 @@ fi
 
 
 
-
-
-
-
-
-
-
 # Verificando se há algum arquivo .out na pasta
 if [ -f *.out ]; then
     arquivo_out=`ls *.out`;
